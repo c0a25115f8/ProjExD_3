@@ -153,21 +153,25 @@ def main():
         
         # 1. 衝突判定（リストの爆弾を1つずつ確認）
         for i, bomb in enumerate(bombs):
-            # こうかとんと爆弾の衝突判定
+            
             if bird.rct.colliderect(bomb.rct):
-                bird.change_img(8, screen) # Game Over文字はないのが正解
+                bird.change_img(8, screen)
+                
+                # --- Game Over文字の描画 ---
+                fonto = pg.font.Font(None, 80)
+                txt = fonto.render("Game Over", True, (255, 0, 0))
+                screen.blit(txt, [WIDTH//2 - 150, HEIGHT//2])
+                
+                
                 pg.display.update()
                 time.sleep(1)
                 return
             
-            # ビームと爆弾の衝突判定
+            # ビームと爆弾の衝突判定（ここにGame Over処理が混ざってはいけない）
             if beam is not None and beam.rct.colliderect(bomb.rct):
                 beam = None  # ビームを消す
                 bombs[i] = None  # 撃ち落とされた爆弾をNoneにする
                 bird.change_img(6, screen)
-                fonto = pg.font.Font(None, 80)
-                txt = fonto.render("Game Over", True, (255, 0, 0))
-                screen.blit(txt, [WIDTH//2 - 150, HEIGHT//2])
                 pg.display.update()
 
         # Noneになった爆弾をリストから除外する
