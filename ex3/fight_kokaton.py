@@ -153,75 +153,64 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
-    bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)] # ←リストに変更
-    beam = None  # ゲーム初期化時にはビームは存在しない
+    bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
+    beams = []
     score = Score()
     clock = pg.time.Clock()
     tmr = 0
+    
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                # スペースキー押下でBeamクラスのインスタンス生成
-                beam = Beam(bird)            
+                beams.append(Beam(bird))
+                
         screen.blit(bg_img, [0, 0])
         
         # 1. 衝突判定（リストの爆弾を1つずつ確認）
         for i, bomb in enumerate(bombs):
-            
-            if bird.rct.colliderect(bomb.rct):
-                bird.change_img(8, screen)
+            if bomb is not None:
+                # こうかとんと爆弾の衝突判定
+                if bird.rct.colliderect(bomb.rct):
+                    # ① こうかとんの画像を悲しい顔（8番）に切り替える
+                    bird.change_img(8, screen)
+                    
+                    # ② Game Over文字を生成して画面中央に貼り付ける
+                    fonto = pg.font.Font(None, 80)
+                    txt = fonto.render("Game Over", True, (255, 0, 0))
+                    screen.blit(txt, [WIDTH//2 - 150, HEIGHT//2])
+                    
+                    # ③ 文字を画面に反映させるために更新する
+                    pg.display.update()
+                    
+                    # ④ 1秒間停止してから終了する
+                    time.sleep(1)
+                    return
                 
-                # --- Game Over文字の描画 ---
-                fonto = pg.font.Font(None, 80)
-                txt = fonto.render("Game Over", True, (255, 0, 0))
-                screen.blit(txt, [WIDTH//2 - 150, HEIGHT//2])
-                
-                
-                pg.display.update()
-                time.sleep(1)
-                return
-            
-            # ビームと爆弾の衝突判定（ここにGame Over処理が混ざってはいけない）
-            if beam is not None and beam.rct.colliderect(bomb.rct):
-                beam = None  # ビームを消す
-                bombs[i] = None  # 撃ち落とされた爆弾をNoneにする
-                bird.change_img(6, screen)
-                score.score += 1
-                pg.display.update()
+                # 複数のビームと爆弾の衝突判定
+                for j, beam in enumerate(beams):
+                    if beam is not None:
+                        if beam.rct.colliderect(bomb.rct):
+                            beams[j] = None
+                            bombs[i] = None
+                            bird.change_img(6, screen)
+                            score.score += 1
+                            pg.display.update()
+                            break
 
-        # Noneになった爆弾をリストから除外する
+        # Noneになった爆弾とビームを除外する
         bombs = [bomb for bomb in bombs if bomb is not None]
-        
-
-        
-        # 2. こうかとんと爆弾の衝突判定（爆弾が存在するときのみ実行）
-        if bomb is not None:
-            if bird.rct.colliderect(bomb.rct):
-                # ① こうかとんの画像を切り替える
-                bird.change_img(8, screen)
-                
-                # ② Game Over文字を生成して画面に貼り付ける
-                fonto = pg.font.Font(None, 80)
-                txt = fonto.render("Game Over", True, (255, 0, 0))
-                screen.blit(txt, [WIDTH//2 - 150, HEIGHT//2])
-                
-                # ③ 【超重要】文字を貼り付けた「後」に画面全体を更新する
-                pg.display.update()
-                
-                # ④ 1秒待ってから終了する
-                time.sleep(1)
-                return
+        beams = [beam for beam in beams if beam is not None and check_bound(beam.rct) == (True, True)]
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         
-        # 3. オブジェクトの更新（存在するときのみ実行）
-        for bomb in bombs:  # ←forループに変更
+        # 2. オブジェクトの描画更新
+        for bomb in bombs:
             bomb.update(screen)
             
-        if beam is not None:
+        for beam in beams:
             beam.update(screen)
 
         score.update(screen)
