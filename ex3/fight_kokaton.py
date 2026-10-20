@@ -7,6 +7,7 @@ import pygame as pg
 
 WIDTH = 1100  # ゲームウィンドウの幅
 HEIGHT = 650  # ゲームウィンドウの高さ
+NUM_OF_BOMBS = 5
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -137,7 +138,7 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
-    bomb = Bomb((255, 0, 0), 10)
+    bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)] # ←リストに変更
     beam = None  # ゲーム初期化時にはビームは存在しない
     clock = pg.time.Clock()
     tmr = 0
@@ -150,16 +151,28 @@ def main():
                 beam = Beam(bird)            
         screen.blit(bg_img, [0, 0])
         
-        # 1. ビームと爆弾の衝突判定（両方が存在するときのみ実行）
-        if beam is not None and bomb is not None:
-            if beam.rct.colliderect(bomb.rct):
-                beam = None
-                bomb = None
+        # 1. 衝突判定（リストの爆弾を1つずつ確認）
+        for i, bomb in enumerate(bombs):
+            # こうかとんと爆弾の衝突判定
+            if bird.rct.colliderect(bomb.rct):
+                bird.change_img(8, screen) # Game Over文字はないのが正解
+                pg.display.update()
+                time.sleep(1)
+                return
+            
+            # ビームと爆弾の衝突判定
+            if beam is not None and beam.rct.colliderect(bomb.rct):
+                beam = None  # ビームを消す
+                bombs[i] = None  # 撃ち落とされた爆弾をNoneにする
                 bird.change_img(6, screen)
                 fonto = pg.font.Font(None, 80)
                 txt = fonto.render("Game Over", True, (255, 0, 0))
                 screen.blit(txt, [WIDTH//2 - 150, HEIGHT//2])
                 pg.display.update()
+
+        # Noneになった爆弾をリストから除外する
+        bombs = [bomb for bomb in bombs if bomb is not None]
+        
 
         # 2. こうかとんと爆弾の衝突判定（爆弾が存在するときのみ実行）
         # 2. こうかとんと爆弾の衝突判定（爆弾が存在するときのみ実行）
@@ -184,8 +197,9 @@ def main():
         bird.update(key_lst, screen)
         
         # 3. オブジェクトの更新（存在するときのみ実行）
-        if bomb is not None:
+        for bomb in bombs:  # ←forループに変更
             bomb.update(screen)
+            
         if beam is not None:
             beam.update(screen)
             
