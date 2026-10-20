@@ -103,8 +103,8 @@ class Beam:
         self.rct = self.img.get_rect()
         
         # ビームの発射位置を、こうかとんの中心から少しだけ離した場所に設定
-        self.rct.centerx = bird.rct.centerx + self.vx * 10
-        self.rct.centery = bird.rct.centery + self.vy * 10
+        self.rct.centerx = bird.rct.centerx + bird.rct.width * self.vx / 5
+        self.rct.centery = bird.rct.centery + bird.rct.height * self.vy / 5
 
     def update(self, screen: pg.Surface):
         if check_bound(self.rct) == (True, True):
