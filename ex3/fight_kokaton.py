@@ -156,14 +156,27 @@ def main():
                 beam = None
                 bomb = None
                 bird.change_img(6, screen)
+                fonto = pg.font.Font(None, 80)
+                txt = fonto.render("Game Over", True, (255, 0, 0))
+                screen.blit(txt, [WIDTH//2 - 150, HEIGHT//2])
                 pg.display.update()
 
         # 2. こうかとんと爆弾の衝突判定（爆弾が存在するときのみ実行）
+        # 2. こうかとんと爆弾の衝突判定（爆弾が存在するときのみ実行）
         if bomb is not None:
             if bird.rct.colliderect(bomb.rct):
-                # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
+                # ① こうかとんの画像を切り替える
                 bird.change_img(8, screen)
+                
+                # ② Game Over文字を生成して画面に貼り付ける
+                fonto = pg.font.Font(None, 80)
+                txt = fonto.render("Game Over", True, (255, 0, 0))
+                screen.blit(txt, [WIDTH//2 - 150, HEIGHT//2])
+                
+                # ③ 【超重要】文字を貼り付けた「後」に画面全体を更新する
                 pg.display.update()
+                
+                # ④ 1秒待ってから終了する
                 time.sleep(1)
                 return
 
