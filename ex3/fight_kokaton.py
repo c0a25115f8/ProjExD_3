@@ -132,6 +132,21 @@ class Bomb:
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
 
+class Score:
+    """
+    打ち落とした爆弾の数を表示するスコアクラス
+    """
+    def __init__(self):
+        self.fonto = pg.font.Font(None, 50)
+        self.color = (0, 0, 255)  # 青色
+        self.score = 0
+        self.img = self.fonto.render(f"Score: {self.score}", 0, self.color)
+        self.rct = self.img.get_rect()
+        self.rct.center = (100, HEIGHT - 50)  # 画面左下
+
+    def update(self, screen: pg.Surface):
+        self.img = self.fonto.render(f"Score: {self.score}", 0, self.color)
+        screen.blit(self.img, self.rct)
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
@@ -140,6 +155,7 @@ def main():
     bird = Bird((300, 200))
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)] # ←リストに変更
     beam = None  # ゲーム初期化時にはビームは存在しない
+    score = Score()
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -172,13 +188,14 @@ def main():
                 beam = None  # ビームを消す
                 bombs[i] = None  # 撃ち落とされた爆弾をNoneにする
                 bird.change_img(6, screen)
+                score.score += 1
                 pg.display.update()
 
         # Noneになった爆弾をリストから除外する
         bombs = [bomb for bomb in bombs if bomb is not None]
         
 
-        # 2. こうかとんと爆弾の衝突判定（爆弾が存在するときのみ実行）
+        
         # 2. こうかとんと爆弾の衝突判定（爆弾が存在するときのみ実行）
         if bomb is not None:
             if bird.rct.colliderect(bomb.rct):
@@ -206,7 +223,9 @@ def main():
             
         if beam is not None:
             beam.update(screen)
-            
+
+        score.update(screen)
+
         pg.display.update()
         tmr += 1
         clock.tick(50)
